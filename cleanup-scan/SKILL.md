@@ -17,12 +17,19 @@ deletion happens only after an explicit answer. Show `git status` before and aft
 ## Step 0 — Pick the scope (always start here)
 
 `AskUserQuestion`, **multiSelect** — "What do you want to clean up?":
-- **Code** — dead / superseded / duplicate / unreachable code inside source files → workflow **A**.
+- **Code (deeper scan — reads source, more tokens)** — dead / superseded / duplicate / unreachable code inside
+  source files → workflow **A**.
 - **Files & scratch** — stale docs, planning notes, session summaries, web mockups/pickers, screenshots, temp
   scripts, `/tmp` clones → workflow **B**.
 - **Branches** — merged / gone-on-origin local git branches → workflow **B**.
 - **Build / cache artifacts** — `.next`, `dist`, `build`, `coverage`, `.turbo`, test caches, `.DS_Store` →
   workflow **B**.
+
+**Cost note — say this in the picker.** The three **Workspace** options (files / branches / caches) are cheap:
+a few shell commands, ~1–2k tokens total. **Code** is the expensive one — it reads source across the repo
+(tens of thousands of tokens on a large codebase). So label Code as the heavy option, and default the three
+Workspace ticks on when the user just said "clean up / tidy" without naming code. Only pay for the code scan
+when the user actually wants it.
 
 Run the selected domains (skip Step 0 only if the user already named the scope, e.g. "prune merged branches").
 Code and Workspace are independent — do them in either order; report each separately.
@@ -34,12 +41,21 @@ Code and Workspace are independent — do them in either order; report each sepa
 A naive "looks unused" scan is worse than useless — it confidently recommends deleting load-bearing code. Treat
 every candidate as guilty until the verification pass proves it dead.
 
-1. **Scope.** Confirm target (whole repo or subsystems). If large, **partition into non-overlapping subsystems**.
-   Note languages + the test/build/lint commands + any recent work that motivated the scan (debris follows a
-   refactor — ask what changed).
-2. **Hunt (read-only, parallel).** One **read-only** explore agent per partition, dispatched in a single message.
-   Each hunts the candidate categories in [REFERENCE.md](REFERENCE.md) and returns file:line + what + why. Tell
-   them explicitly: **do not edit**; flag anything that looks dead but may be load-bearing.
+0. **Pick the depth (this is the token dial).** Since Code is the expensive domain, confirm how deep before
+   hunting — offer it when the user hasn't said:
+   - **Quick look (default, cheap)** — a single high-signal pass over the most likely debris (recently-touched
+     areas, obvious dead exports/files), high-confidence SAFE items only, one bounded hunt (no fan-out). Best
+     when the user just wants a fast tidy.
+   - **Deep audit (thorough, pricey)** — full partition + one hunt agent per subsystem + the RISKY tier. Only
+     when the user asks to "be thorough / audit everything". This is what costs tens of thousands of tokens.
+   Scope also to a **subdir** if the user names one — never scan the whole repo when they meant `src/api`.
+1. **Scope.** Confirm target (whole repo or subsystems). If large *and deep-audit*, **partition into
+   non-overlapping subsystems**. Note languages + the test/build/lint commands + any recent work that motivated
+   the scan (debris follows a refactor — ask what changed).
+2. **Hunt (read-only).** *Quick look* → a single bounded read-only pass over the scoped area (no agent fan-out).
+   *Deep audit* → one **read-only** explore agent per partition, dispatched in a single message. Either way, hunt
+   the candidate categories in [REFERENCE.md](REFERENCE.md) and return file:line + what + why; **do not edit**;
+   flag anything that looks dead but may be load-bearing.
 3. **Verify — the load-bearing phase (do NOT skip).** For **every** candidate, prove removability yourself
    (grep/read — don't trust the hunt's claim). Each ends **SAFE / LIKELY / RISKY / REJECTED**. Ruthlessly reject
    false positives: fallback/dev-path code, values read somewhere non-obvious, incomplete-feature stubs, and

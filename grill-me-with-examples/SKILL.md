@@ -5,7 +5,7 @@ description: Grill the user on decisions that benefit from visualizations + pros
 
 # Grill me — with examples
 
-The sibling of [grill-me](../grill-me/SKILL.md). Same relentless, one-branch-at-a-time interviewing
+The sibling of the plain `grill-me` skill. Same relentless, one-branch-at-a-time interviewing
 and shared-understanding goal — but when a decision is **visual or experiential**, a written question
 under-serves it. People choose layout, spacing, density, and component treatments far better when they
 can *see and click* the options. So this skill resolves those branches with an **interactive Artifact**.
