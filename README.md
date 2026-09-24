@@ -1,6 +1,6 @@
 # Claude Code skills
 
-Two agent skills for [Claude Code](https://claude.com/claude-code).
+Three agent skills for [Claude Code](https://claude.com/claude-code).
 
 ## Skills
 
@@ -33,21 +33,49 @@ One cleanup entry point. It asks **what** to clean, then handles any of:
 Every removal is gated behind a per-item / per-group grill — **it never deletes anything unconfirmed**, never
 touches a remote branch without asking, and won't clear a build cache while a dev server is running.
 
+### `worklog`
+Keeps parallel work from going untracked: every task is tied to a **Jira ticket** and a local ledger, and
+real hours land on Jira. It has five moves, picked from what you say:
+
+- **start** (`"clock in" / "what's next"`) — recalls the plan from the ledger + your notes, maps each task to
+  its Jira ticket, and clocks in.
+- **switch** (`"park this"`) — logs the hop between parallel tasks.
+- **wrap** (`"log my time" / "wrap up"`) — proposes hours per ticket, and on your OK logs them
+  (delta-only, never double-logging).
+- **timemachine** (`"show me all my work"`) — a read-only table of everything, each Jira key a clickable link.
+- **retro** (`"review last month's work"`) — reconstructs a past period from git + notes + session data into
+  sized workstreams and drafts the missing Jira tickets, for org visibility.
+
+A **SessionStart hook** nudges you at the top of every chat, and — when installed from a git clone — keeps
+itself up to date (auto-`pull` on a clean tree, a nudge when you have local edits). Identity (Jira site,
+account, timezone) is **discovered at runtime** or read from a local `~/.claude/worklog/config.md`; nothing
+personal lives in the skill. **Every Jira write is drafted and waits for your explicit go** — it never
+creates, logs, or transitions unattended.
+
 ## Install
 
 ```bash
 mkdir -p ~/.claude/skills
-cp -R grill-me-with-examples cleanup-scan ~/.claude/skills/
+cp -R grill-me-with-examples cleanup-scan worklog ~/.claude/skills/
 chmod +x ~/.claude/skills/cleanup-scan/scripts/scan.sh
 ```
+
+> Tip: to get `worklog`'s auto-update, `git clone` this repo somewhere and **symlink** the skills into
+> `~/.claude/skills/` instead of copying — then a `git pull` (or the SessionStart auto-pull) keeps them current.
 
 Restart Claude Code (or start a new session). The skills auto-register — Claude picks them up from their
 description when a matching request comes in. You can also invoke them directly:
 
 - `/cleanup-scan` — then pick what to clean.
 - `/grill-me-with-examples` — to be walked through a design decision with visual options.
+- `/worklog` — then track time, log to Jira, or reconstruct a past period.
 
-Requires Claude Code. No other dependencies (the discovery script is portable POSIX shell + `git`).
+**`worklog` needs two one-time steps** (see `worklog/references/setup.md`): register the SessionStart nudge
+with `bash ~/.claude/skills/worklog/scripts/install-hook.sh`, then run `/worklog` once to self-configure your
+Jira identity (`~/.claude/worklog/config.md`, kept local — never committed). It uses the Atlassian MCP for
+Jira access.
+
+Requires Claude Code. No other dependencies (portable POSIX shell + `git`; `worklog` also uses `python3`).
 
 ## License
 
