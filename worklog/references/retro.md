@@ -87,3 +87,13 @@ the default, not the exception.
    Optionally transition finished tickets to Done (confirm). Fold the reconstructed tasks into the
    ledger so they live in the daily system going forward, and end with the linked **✅ Everything
    tracked** table.
+
+**Spread the hours across real work days — never stamp everything on the run day.** The retro's easiest
+mistake: logging each ticket's full total with `started` = today, so a whole month's reconstructed time
+piles onto one or two days and Jira shows impossible **24h / "3d" days**. Instead, for each ticket derive
+its **actual work days from the git evidence** (the commit dates for that ticket's branch/PRs, already
+gathered in the mine step) and set each worklog's `started` to those dates. Enforce a hard **per-calendar-
+day cap of ~8h across ALL tickets combined** — if a day would exceed it, shift the overflow to an
+adjacent working day that has evidence. The monthly *total* is what matters, but **no single day may
+exceed a real working day.** Where the company `time-logging` skill is present, prefer handing this to its
+evidence-based `/review-time-log` spread rather than re-deriving it.

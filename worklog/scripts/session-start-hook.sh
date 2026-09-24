@@ -27,8 +27,8 @@ else
 fi
 
 cat <<'EOF'
-→ Starting or continuing work? Run /worklog to recall the plan (memory + ledger) and clock in.
-→ End of session, or "log my time / update the plan"? Run /worklog to log Jira time and wrap up.
+→ Starting your day? Run /worklog — recall the plan (memory + ledger), pick focus, clock in.
+→ End of session / "log my time"? Run /worklog to log Jira time + update the plan.
 EOF
 
 # --- Skill self-update (best-effort; never blocks or fails the session) ---
