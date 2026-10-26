@@ -1,14 +1,14 @@
 ---
 name: worklog
-description: One skill for keeping work tracked end-to-end — plan the day, clock in, log real hours to Jira, and see the whole picture. Reach for this whenever the user is planning, tracking, or logging their WORK-DAY, even without naming it. START / PLAN a session ("what's next / where were we / plan my day / go plan / let's plan / what should I work on / clock in"), SWITCH between parallel tasks ("switch to X / park this"), WRAP a session ("wrap up / log my time / update the plan"), get an OVERVIEW ("show me all my work / the table / status / what am I missing / what did I do"), or RECONSTRUCT a past period ("review last month's work / log what I did / create Jira tasks for what I've done"). Also fires from the SessionStart nudge. Discovers the user's Jira identity at runtime — no hardcoded names or paths. Not for reading a single Jira ticket (use the Atlassian MCP directly).
+description: One skill for keeping work tracked end-to-end — plan the day, clock in, log real hours to Jira, and see the whole picture. Reach for this whenever the user is planning, tracking, or logging their WORK-DAY, even without naming it. START / PLAN a session ("what's next / where were we / plan my day / go plan / let's plan / what should I work on / clock in"), SWITCH between parallel tasks ("switch to X / park this"), WRAP a session ("wrap up / log my time / update the plan"), get an OVERVIEW ("show me all my work / the table / status / what am I missing / what did I do"), REPORT the real work-output picture ("show my output / my results / what have I shipped / my busyness / proof of work / report for my 1:1 / am I at zero"), or RECONSTRUCT a past period ("review last month's work / log what I did / create Jira tasks for what I've done"). Also fires from the SessionStart nudge. Discovers the user's Jira identity at runtime — no hardcoded names or paths. Not for reading a single Jira ticket (use the Atlassian MCP directly).
 ---
 
 # Worklog — plan · track · log · review
 
 One skill that keeps parallel work from going untracked: every task has a **Jira ticket** and a line in
 the **ledger**, real time lands on Jira, and you always know what's next. A few tools — **START (plan +
-clock in) · switch · wrap · overview · retro** — pick from what the user asked; when ambiguous, ask. Each
-task carries a **size** `S`/`M`/`L` (by effort, not ticket type), set when it enters the ledger.
+clock in) · switch · wrap · overview · report · retro** — pick from what the user asked; when ambiguous,
+ask. Each task carries a **size** `S`/`M`/`L` (by effort, not ticket type), set when it enters the ledger.
 
 ## Config & identity (discover once, never hardcode)
 
@@ -101,6 +101,18 @@ worked-but-unlogged, plus no-ticket work → **propose/create** the missing tick
 [references/retro.md](references/retro.md) first.** Mine git (all `repo_roots`, match `git_author_email`)
 + memory + `ccusage` into sized workstreams, cross-check Jira (`created >=`), checkpoint, offer a deepen
 pass, then draft tickets + **day-spread** logged times. READ-ONLY until go.
+
+**REPORT** ("show my output / my results / what have I shipped / my busyness / proof of work / report for
+my 1:1 / am I at zero"). RETRO's **read-only twin** — **read [references/report.md](references/report.md)
+first.** Reconstructs the user's **work output** over a window and splits it into **TRACKED** (what the
+systems credit — `qa_team_stats`, `project_stats` boards, his `createdBy` test runs, Jira worklog) vs
+**"reads-as-zero" UNTRACKED** (git product commits, the automation attribution gap, research/audit docs,
+agent-orchestrated builds) — **every untracked row carrying WHY it's invisible** (review ·
+agent-orchestrated · research-audit · product-eng-commit · no-ticket-by-choice) — plus a footprint band
+and the worklog deep link. **Strictly READ-ONLY** — it NEVER drafts/creates/logs to Jira or touches the
+ledger (that's RETRO/WRAP); its only action-offer is routing an untracked row into `/worklog retro`.
+Encode the honesty guards: a `null` week = "not recorded" not 0; authorship only from **2026-09-15** (never
+show 0 earlier); the counts are **output-volume, never a people-ranking**.
 
 ## The report table (wrap · overview · retro share this shape)
 
