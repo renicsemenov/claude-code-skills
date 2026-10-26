@@ -16,11 +16,40 @@ logging agreed time, REPORT ends by *showing the gap* and stopping. Read identit
 
 ---
 
-## Step 0 — Period & identity
+## Step 0 — Source & period & identity (resolve in LEVELS)
 
-**Choose the period first** (default = current calendar month; accept `current + previous`, or a custom
-`from-to`). Resolve to `from`/`to` dates in the config `timezone` and echo the range in one line. A smaller
-window is faster and more reliable.
+**Resolve TWO things in LEVELS — ask only for what the invocation didn't already give, one question at a
+time, and never pop results before both source + period are resolved.** The report reaches **git / `gh` /
+qa-service / the ledger**, so a blind run could gather far more than the caller wanted.
+
+**1. Which worklog — Full, a specific source, or gaps.** If the invocation names it, use it; else ask with
+the question tool (which **always lets him type his own via _Other_**). **Full is the natural default** (it's
+his proof-of-work tool) — but still **ASK on a bare `/worklog report`**:
+
+- **Full** — **every source at once** (Jira worklog + git + `gh` + qa-service + ledger): the complete
+  tracked-vs-reads-as-zero picture. The default when he picks nothing.
+- **A specific source** — scope to one: **Jira** · **qa-service** · **GitHub** · **Bitbucket** · **Ledger**
+  (the personal "not logged" lines) · **or any source he types**. If he names a source not wired here,
+  **attempt the nearest available search** (git over a matching checkout · `gh` · an MCP `search`) and say
+  honestly if it can't be reached — **never refuse**.
+- **Gaps only** — just the untracked / reads-as-zero half.
+
+**2. Which period.** Only treat a period as given if the invocation already carries one; else **choose it
+first** (default = current calendar month; accept `current + previous`, or a custom `from-to`). Resolve to
+`from`/`to` dates in the config `timezone` and echo the range in one line. A smaller window is faster and
+more reliable.
+
+So `/worklog report qa-service October` answered **both** → run straight away. `/worklog report October` →
+ask only the source (Full default). Bare `/worklog report` → ask the source, **then** the period.
+
+**Scope — Full, or one source.** If the caller chose **Full** (or bare `report`), show every section below.
+If they chose a **specific source**, show **only that source's rows**: **Jira** → the worklog table + the
+deep link; **qa-service** → the TRACKED qa-service stats (`qa_team_stats` / `project_stats` / test runs) +
+the attribution gap; **GitHub** → git commits + `gh` PR reviews over the GitHub checkouts; **Bitbucket** →
+git commits over the bb checkout(s) (bb PR-review mining isn't wired — say so if asked); **Ledger** → the
+`active.md` / `archive-*.md` "not logged" lines. If the caller typed a **source not listed**, attempt the
+nearest available search (git / `gh` / MCP `search`); if it can't be reached, say so plainly rather than
+inventing rows.
 
 **Fold the caller's aliases.** The user may commit and act under more than one spelling. Resolve them at
 runtime from `map_identity` / `list_people` — the person whose `email` matches `config.git_author_email` —
@@ -84,10 +113,14 @@ Everything here is real output that the boards above **cannot see**. Each row ge
 1. **Ledger "not logged" lines** - grep `active.md` + `archive-*.md` for session lines already annotated
    like `~Nh, not logged (review)`. The user flagged these himself. -> reason: `review` (or whatever the
    annotation says).
-2. **Git commits** over `repo_roots` on `git_author_email` - `git log --since=<from> --until=<to>
-   --author=<email> --oneline --shortstat` per repo. This surfaces the body of engineering invisible to the
+2. **Git commits** over `repo_roots` on `git_author_email` - `git -C <repo> log --since=<from> --until=<to>
+   --author=<author> --oneline --shortstat` per repo. This surfaces the body of engineering invisible to the
    QA boards - e.g. the **qa-service PRODUCT commits** (the service's own code, not test cases). -> reason:
-   `product-eng-commit`.
+   `product-eng-commit`. **Worktree-safe + dedup:** some checkouts are git *worktrees* of ONE repo (`.git` is
+   a **file** there — never test for a `.git` directory; run `git -C <repo> log` directly). Worktrees sharing
+   a repo return the **same** commits, so **dedup by commit hash across checkouts** and count unique hashes,
+   not the per-checkout sum. Match the author robustly (`git_author_email` may be unset in config → fall back
+   to `git config user.name/.email`). Scratch to `$TMPDIR`, never a hardcoded tmp path.
 3. **The automation attribution gap** - `code_authorship_gaps {productId}` returns `total` automated files
    vs `missing` (no git-authorship row). When `qa_team_stats` credits the user with N `automated` but the
    git-file board (`attributedTests`) shows far fewer, the delta is files whose authorship **hasn't been
@@ -146,6 +179,11 @@ One honest sentence: *tracked shows X; the real footprint is Y; the gap is attri
 the **worklog report** deep link:
 `python3 scripts/worklog-report-link.py --start <from> --end <to>` (reads site/user/app from config; if
 `worklog_report_app` is unset, ask the user to paste one worklogs-report URL once).
+
+**Compact by default — a tiny "expand" hint.** The tables are the compact view. End with **one small line**
+noting the user can ask to see any single source in full (full Jira worklog table · full qa-service stats ·
+every commit/review · the ledger lines) — e.g. *"expand qa-service" / "full Jira"*. Keep it a **tiny hint,
+not a mode** — the **primary** offer stays the gap-fix (below); this just says detail is one ask away.
 
 ## After the report - the ONE action-offer (optional, read-only until the user acts)
 

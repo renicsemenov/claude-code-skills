@@ -114,6 +114,29 @@ ledger (that's RETRO/WRAP); its only action-offer is routing an untracked row in
 Encode the honesty guards: a `null` week = "not recorded" not 0; authorship only from **2026-09-15** (never
 show 0 earlier); the counts are **output-volume, never a people-ranking**.
 
+*Resolve TWO things in LEVELS — ask only for what the invocation didn't already give, one question at a
+time, and never pop results before both source + period are resolved.* The report now reaches **git / `gh` /
+qa-service / the ledger**, so a blind run could gather far more than the caller wanted.
+
+1. **Which worklog — Full, a specific source, or gaps.** If the invocation names it, use it; else ask with
+   the question tool (which **always lets him type his own via _Other_**). **Full is the natural default**
+   (it's his proof-of-work tool) — but still **ASK on a bare `/worklog report`**:
+   - **Full** — **every source at once** (Jira worklog + git + `gh` + qa-service + ledger): the complete
+     tracked-vs-reads-as-zero picture. The default when he picks nothing.
+   - **A specific source** — scope to one: **Jira** · **qa-service** · **GitHub** · **Bitbucket** ·
+     **Ledger** (the personal "not logged" lines) · **or any source he types**. A specific pick shows **only
+     that source's rows**; Full shows all. If he names a source not wired here, **attempt the nearest
+     available search** (git over a matching checkout · `gh` · an MCP `search`) and say honestly if it can't
+     be reached — **never refuse**.
+   - **Gaps only** — just the untracked / reads-as-zero half.
+2. **Which period.** If the invocation names it (`… October`, `last 2 weeks`), use it; else ask (current
+   month · current + previous · custom).
+
+   So `/worklog report qa-service October` answered **both** → run straight away, no questions.
+   `/worklog report October` → period given, ask only the source (Full default). Bare `/worklog report` →
+   ask the source, **then** the period. Identity stays **personal** (`~/.claude/worklog/config.md`) — no
+   team-member discovery.
+
 ## The report table (wrap · overview · retro share this shape)
 
 Group by ticket parent / month; **link every key**; show status + logged:
