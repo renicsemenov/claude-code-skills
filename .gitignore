@@ -1,2 +1,6 @@
 .DS_Store
 *.log
+workstreams/
+worklog-data/
+*-local/
+*.local.json

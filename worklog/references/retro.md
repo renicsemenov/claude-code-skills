@@ -9,7 +9,7 @@ daily tracking — the ledger goes forward, retro reconstructs the past.
 user approves the drafts (the skill's confirm-before-write law).
 
 **Depth over speed.** The user wants a *detailed* reconstruction. Go wide, dig, then return with the
-overview. Expect at least one **deepen pass**. Read identity/paths from `~/.claude/worklog/config.md`.
+overview. Expect at least one **deepen pass**. Read identity/paths from `~/.claude/worklog.config.json`.
 
 ---
 

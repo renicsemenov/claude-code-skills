@@ -2,7 +2,7 @@
 """Build a deep link to the Jira "Worklogs" report app, scoped to a user + date range.
 
 The report page is instance-specific (an installed app), so the app path
-(<appId>/<pageId>) and the site come from ~/.claude/worklog/config.md; only the
+(<appId>/<pageId>) and the site come from ~/.claude/worklog.config.json; only the
 date range is per-call. Dates are interpreted as LOCAL MIDNIGHT in the user's
 timezone, which is how the report encodes startDate/endDate (epoch-ms).
 
@@ -10,26 +10,23 @@ Usage:
   worklog-report-link.py --start YYYY-MM-DD --end YYYY-MM-DD [--period week|day|month]
                          [--user <accountId>] [--site ...] [--app <appId>/<pageId>] [--tz ...]
 
-Values not passed are read from config.md. Prints the URL to stdout.
+Values not passed are read from worklog.config.json. Prints the URL to stdout.
 """
-import argparse, datetime, sys, pathlib, re
+import argparse, datetime, sys, pathlib, json
 
 try:
     import zoneinfo
 except ImportError:
     zoneinfo = None
 
-CONFIG = pathlib.Path.home() / ".claude" / "worklog" / "config.md"
+CONFIG = pathlib.Path.home() / ".claude" / "worklog.config.json"
 
 
 def load_config():
-    cfg = {}
-    if CONFIG.exists():
-        for line in CONFIG.read_text().splitlines():
-            m = re.match(r"^([a-z_]+):\s*(.*)$", line.strip())
-            if m:
-                cfg[m.group(1)] = m.group(2).strip()
-    return cfg
+    try:
+        return json.loads(CONFIG.read_text())
+    except Exception:
+        return {}
 
 
 def midnight_ms(date_str, tz_name):
